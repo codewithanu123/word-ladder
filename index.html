@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Ladder</title>
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --text:#1c1e21;
+    --muted:#6b7280;
+    --border:#d7dade;
+    --tile-bg:#eef0f3;
+    --tile-border:#c7cbd1;
+    --tile-changed-bg:#0a66c2;
+    --tile-changed-text:#ffffff;
+    --tile-goal-bg:#ffffff;
+    --tile-goal-border:#0a66c2;
+    --accent:#0a66c2;
+    --accent-text:#ffffff;
+    --danger:#c0392b;
+    --success:#1a7f37;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#15181c;
+      --card:#1f2328;
+      --text:#e6e8eb;
+      --muted:#9aa2ab;
+      --border:#33383f;
+      --tile-bg:#262b31;
+      --tile-border:#3a4048;
+      --tile-changed-bg:#3b9eff;
+      --tile-changed-text:#0b1015;
+      --tile-goal-bg:#1f2328;
+      --tile-goal-border:#3b9eff;
+      --accent:#3b9eff;
+      --accent-text:#0b1015;
+      --danger:#ff6b6b;
+      --success:#4fd17a;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:24px 16px 60px;
+  }
+  .wrap{
+    width:100%;
+    max-width:480px;
+  }
+  h1{
+    font-size:1.5rem;
+    margin:0 0 4px;
+    text-align:center;
+  }
+  .sub{
+    color:var(--muted);
+    text-align:center;
+    font-size:0.9rem;
+    margin:0 0 20px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .goal-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .goal-label{
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--muted);
+    text-align:center;
+    margin-bottom:6px;
+  }
+  .arrow{
+    font-size:1.4rem;
+    color:var(--muted);
+  }
+  .tiles{
+    display:flex;
+    gap:6px;
+  }
+  .tile{
+    width:44px;
+    height:44px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:1.2rem;
+    background:var(--tile-bg);
+    border:1px solid var(--tile-border);
+  }
+  .tile.goal{
+    background:var(--tile-goal-bg);
+    border:2px solid var(--tile-goal-border);
+    color:var(--accent);
+  }
+  .tile.changed{
+    background:var(--tile-changed-bg);
+    color:var(--tile-changed-text);
+    border-color:var(--tile-changed-bg);
+  }
+  .chain{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:260px;
+    overflow-y:auto;
+    padding-right:2px;
+  }
+  .chain-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .chain-index{
+    width:20px;
+    color:var(--muted);
+    font-size:0.8rem;
+    text-align:right;
+    flex-shrink:0;
+  }
+  .input-row{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    margin-top:4px;
+  }
+  .letter-input{
+    width:44px;
+    height:44px;
+    text-align:center;
+    font-size:1.2rem;
+    font-weight:700;
+    text-transform:uppercase;
+    border-radius:8px;
+    border:1px solid var(--tile-border);
+    background:var(--tile-bg);
+    color:var(--text);
+  }
+  .letter-input:focus{
+    outline:2px solid var(--accent);
+  }
+  .btn-row{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  button{
+    font-family:inherit;
+    font-size:0.9rem;
+    font-weight:600;
+    padding:10px 16px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    cursor:pointer;
+  }
+  button.primary{
+    background:var(--accent);
+    color:var(--accent-text);
+    border-color:var(--accent);
+  }
+  button:active{ transform:scale(0.98); }
+  .msg{
+    min-height:20px;
+    text-align:center;
+    font-size:0.85rem;
+    margin-top:10px;
+  }
+  .msg.error{ color:var(--danger); }
+  .msg.ok{ color:var(--success); }
+  .stats{
+    display:flex;
+    justify-content:center;
+    gap:24px;
+    text-align:center;
+    color:var(--muted);
+    font-size:0.85rem;
+  }
+  .stats b{
+    display:block;
+    color:var(--text);
+    font-size:1.1rem;
+  }
+  .win-panel{
+    text-align:center;
+  }
+  .win-panel h2{
+    margin:0 0 6px;
+    font-size:1.3rem;
+  }
+  .win-panel p{
+    color:var(--muted);
+    margin:0 0 14px;
+    font-size:0.9rem;
+  }
+  textarea.share{
+    width:100%;
+    min-height:70px;
+    resize:none;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--tile-bg);
+    color:var(--text);
+    font-family:inherit;
+    font-size:0.85rem;
+    padding:10px;
+    margin-bottom:10px;
+  }
+  .hidden{ display:none; }
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.75rem;
+    margin-top:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🪜 Word Ladder</h1>
+  <p class="sub">Turn the start word into the target word — one letter at a time. Every step must be a real word.</p>
+
+  <div class="card">
+    <div class="goal-row">
+      <div>
+        <div class="goal-label">Start</div>
+        <div class="tiles" id="startTiles"></div>
+      </div>
+      <div class="arrow">→</div>
+      <div>
+        <div class="goal-label">Target</div>
+        <div class="tiles" id="targetTiles"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chain" id="chain"></div>
+    <div class="input-row" id="inputRow">
+      <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
+      <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
+      <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
+      <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="msg" id="msg"></div>
+    <div class="stats">
+      <div>Moves<b id="moveCount">0</b></div>
+    </div>
+    <div class="btn-row">
+      <button id="submitBtn" class="primary">Enter</button>
+      <button id="newPuzzleBtn">New Puzzle</button>
+    </div>
+  </div>
+
+  <div class="card win-panel hidden" id="winPanel">
+    <h2 id="winTitle">Solved!</h2>
+    <p id="winSub"></p>
+    <textarea class="share" id="shareText" readonly></textarea>
+    <div class="btn-row">
+      <button class="primary" id="copyBtn">Copy result to share</button>
+      <button id="playAgainBtn">New Puzzle</button>
+    </div>
+  </div>
+
+  <footer>Word list: common 4-letter English words. New puzzle each play.</footer>
+</div>
+
+<script>
+const WORD_LIST = [
+"able","aced","acid","acre","aged","airy","aloe","also","ants","area","army","atom","aunt","away","axis",
+"back","bail","bait","bake","bald","ball","balm","band","bane","bank","bard","bare","bark","barn","base",
+"bash","bask","bass","bath","bead","beam","bean","bear","beat","beef","been","beer","bell","belt","bend",
+"best","bike","bile","bill","bind","bird","bite","blot","blue","boat","body","boil","bold","bolt","bone",
+"book","boom","boot","born","boss","bowl","brow","buck","buff","bulk","bump","bunk","burn","bush","bust",
+"busy","cafe","cage","cake","calf","call","calm","came","camp","cane","cape","card","care","cars","cart",
+"case","cash","cask","cast","cats","cave","cell","chef","chew","chip","city","clan","claw","clay","clip",
+"club","clue","coal","coat","code","coin","cold","colt","comb","come","cone","cook","cool","cope","copy",
+"cord","core","corn","cost","cove","cozy","crab","crew","crib","crop","crow","cube","cuff","cure","curl",
+"cusp","cute","cyst","dark","dart","dash","date","dawn","dead","deal","dean","dear","debt","deck","deed",
+"deep","deer","desk","dice","dime","dine","ding","dirt","dish","dive","dock","dodo","does","dome","done",
+"doom","door","dose","dost","dove","down","drag","draw","drip","drop","drum","dual","duck","dude","dull",
+"dump","dune","dunk","dusk","dust","duty","each","earn","ears","ease","east","easy","eats","echo","edge",
+"edit","else","envy","epic","even","ever","evil","exit","face","fact","fade","fail","fair","fake","fall",
+"fame","fang","fare","farm","fast","fate","fawn","fear","feat","feed","feel","feet","fell","felt","fern",
+"figs","file","fill","film","find","fine","fire","firm","fish","fist","five","flag","flap","flat","flaw",
+"flea","flee","flew","flex","flip","flow","flux","foal","foam","foil","fold","folk","fond","font","food",
+"fool","foot","fork","form","fort","foul","four","fowl","free","frog","from","fuel","full","fume","fund",
+"fungi","funk","fury","fuse","fuss","fuzz","gain","gale","gall","game","gang","gape","gash","gate","gave",
+"gaze","gear","gene","gift","gill","girl","give","glad","glow","glue","goal","goat","gold","gone","good",
+"gown","grab","gray","grew","grey","grid","grim","grin","grip","grow","gulf","gulp","gust","hack","hail",
+"hair","hale","half","hall","halt","hand","hang","hard","hare","hark","harm","hart","hash","hate","have",
+"hawk","haze","head","heal","heap","hear","heat","heel","held","helm","help","herb","herd","here","hero",
+"hide","high","hike","hill","hint","hire","hive","hold","hole","holy","home","hone","hood","hook","hoop",
+"hope","horn","hose","host","hour","howl","huff","hulk","hump","hunk","hunt","hurl","hurt","hush","hymn",
+"icon","idea","idle","inch","into","iris","iron","itch","jazz","join","joke","jolt","jump","junk","jury",
+"just","keen","keep","kept","kick","kind","king","kiss","kite","knee","knew","knit","know","lace","lack",
+"lady","laid","lake","lamb","lame","lamp","land","lane","lard","lark","last","late","lawn","lead","leaf",
+"leak","lean","leap","left","lend","lens","lent","less","lick","lied","life","lift","like","limb","lime",
+"line","link","lion","lips","list","live","load","loaf","loan","lock","loft","lone","long","look","loom",
+"loop","loot","lord","lose","loss","lost","loud","love","luck","lump","lure","lush","lust","made","mail",
+"main","make","male","mall","malt","mane","many","mare","mark","mash","mask","mass","mast","mate","meal",
+"mean","meat","meet","melt","mend","mice","mild","mile","milk","mind","mine","mint","mist","moan","moat",
+"mode","mold","mole","monk","mood","moon","more","moss","most","moth","move","much","muck","mule","must",
+"myth","nail","name","nape","near","neat","neck","need","nest","nice","nine","node","none","noon","norm",
+"nose","note","noun","nude","numb","oath","oats","obey","odor","okay","omit","once","only","onto","open",
+"oral","over","pace","pack","page","pain","pair","pale","palm","pane","pang","pant","pare","park","part",
+"pass","past","path","pave","pawn","peak","peal","pear","peat","peck","peel","peer","pelt","pest","pick",
+"pier","pike","pile","pill","pine","pink","pint","pipe","pith","pity","plan","play","plot","plow","plug",
+"plum","plus","poem","poet","pole","polo","pond","pony","pool","poor","pope","pore","port","pose","post",
+"pour","pray","prep","prey","prod","prop","pull","pulp","pump","punk","pure","push","quiz","race","rack",
+"raft","rage","raid","rail","rain","rake","ramp","rang","rank","rant","rare","rash","rate","rave","read",
+"real","reap","rear","reed","reef","reel","rent","rest","rice","ride","rift","ring","rink","riot","ripe",
+"rise","risk","road","roam","roar","robe","rock","rode","role","roll","roof","room","root","rope","rose",
+"rosy","rough","rout","rude","ruin","rule","rung","runs","rush","rust","sack","safe","sage","sail","sake",
+"sale","salt","same","sand","sane","sank","sash","save","scan","scar","seal","seam","seat","seed","seek",
+"seem","seen","self","sell","send","sent","sew","shed","shelf","shin","ship","shoe","shop","shot","show",
+"shut","sick","side","sift","sigh","sign","silk","sill","silo","sing","sink","site","size","skin","skip",
+"skit","slab","slam","slap","slid","slim","slip","slit","slow","slug","slum","smog","snap","snip","snow",
+"soak","soap","sock","soda","sofa","soft","soil","sold","sole","some","song","soon","sore","sort","soul",
+"soup","sour","span","spar","spin","spit","spot","spun","spur","stab","star","stay","stem","step","stew",
+"stir","stop","stow","stub","stud","stun","such","suit","sunk","sung","sure","surf","swan","swap","sway",
+"swim","tack","tail","take","tale","talk","tall","tame","tank","tape","tare","tart","task","teal","team",
+"tear","teem","tell","tend","tent","term","test","text","than","that","them","then","they","thin","this",
+"tick","tide","tidy","tile","till","tilt","time","tine","tint","tiny","tire","toad","toast","toe","toil",
+"told","toll","tomb","tone","tong","took","tool","toot","tore","torn","toss","tour","town","toys","tram",
+"trap","tray","tree","trek","trim","trip","trot","true","tuck","tuna","tune","turf","turn","tusk","twig",
+"twin","type","undo","unit","upon","urge","used","user","vain","vane","vary","vase","vast","veal","veer",
+"vein","verb","very","vest","view","vine","visa","void","vote","wade","wage","wail","wait","wake","walk",
+"wall","wand","want","ward","ware","warm","warn","wars","wash","wave","weak","wear","week","weld","well",
+"went","were","west","what","when","whim","whip","whit","wide","wife","wild","will","wilt","wind","wine",
+"wing","wink","wipe","wire","wise","wish","wolf","wood","wool","word","wore","work","worm","worn","wove",
+"wrap","yard","yarn","yawn","year","yell","yolk","zeal","zest","zinc","zing","zone","zoom"
+];
+
+const WORDS = [...new Set(WORD_LIST.filter(w => w.length === 4))];
+const WORD_SET = new Set(WORDS);
+
+function diffCount(a, b) {
+  let c = 0;
+  for (let i = 0; i < 4; i++) if (a[i] !== b[i]) c++;
+  return c;
+}
+
+function buildAdjacency(words) {
+  const adj = new Map();
+  words.forEach(w => adj.set(w, []));
+  for (let i = 0; i < words.length; i++) {
+    for (let j = i + 1; j < words.length; j++) {
+      if (diffCount(words[i], words[j]) === 1) {
+        adj.get(words[i]).push(words[j]);
+        adj.get(words[j]).push(words[i]);
+      }
+    }
+  }
+  return adj;
+}
+
+function largestComponent(words, adj) {
+  const visited = new Set();
+  let best = [];
+  for (const w of words) {
+    if (visited.has(w)) continue;
+    const comp = [];
+    const queue = [w];
+    visited.add(w);
+    while (queue.length) {
+      const cur = queue.shift();
+      comp.push(cur);
+      for (const n of adj.get(cur)) {
+        if (!visited.has(n)) { visited.add(n); queue.push(n); }
+      }
+    }
+    if (comp.length > best.length) best = comp;
+  }
+  return best;
+}
+
+function bfsDistance(adj, start, target) {
+  if (start === target) return 0;
+  const visited = new Set([start]);
+  const queue = [[start, 0]];
+  while (queue.length) {
+    const [cur, d] = queue.shift();
+    for (const n of adj.get(cur)) {
+      if (n === target) return d + 1;
+      if (!visited.has(n)) { visited.add(n); queue.push([n, d + 1]); }
+    }
+  }
+  return -1;
+}
+
+const ADJ = buildAdjacency(WORDS);
+const COMPONENT = largestComponent(WORDS, ADJ);
+
+function pickPuzzle() {
+  let best = null;
+  for (let attempt = 0; attempt < 300; attempt++) {
+    const a = COMPONENT[Math.floor(Math.random() * COMPONENT.length)];
+    const b = COMPONENT[Math.floor(Math.random() * COMPONENT.length)];
+    if (a === b) continue;
+    const d = bfsDistance(ADJ, a, b);
+    if (d >= 3 && d <= 6) return { start: a, target: b, par: d };
+    if (d > 0 && (!best || Math.abs(d - 4) < Math.abs(best.par - 4))) best = { start: a, target: b, par: d };
+  }
+  return best;
+}
+
+let puzzle = null;
+let chainWords = [];
+
+const startTilesEl = document.getElementById('startTiles');
+const targetTilesEl = document.getElementById('targetTiles');
+const chainEl = document.getElementById('chain');
+const inputs = Array.from(document.querySelectorAll('.letter-input'));
+const msgEl = document.getElementById('msg');
+const moveCountEl = document.getElementById('moveCount');
+const winPanel = document.getElementById('winPanel');
+const winTitle = document.getElementById('winTitle');
+const winSub = document.getElementById('winSub');
+const shareText = document.getElementById('shareText');
+const inputRow = document.getElementById('inputRow');
+
+function renderStaticTiles(container, word, goal) {
+  container.innerHTML = '';
+  word.toUpperCase().split('').forEach(ch => {
+    const div = document.createElement('div');
+    div.className = 'tile' + (goal ? ' goal' : '');
+    div.textContent = ch;
+    container.appendChild(div);
+  });
+}
+
+function renderChain() {
+  chainEl.innerHTML = '';
+  chainWords.forEach((word, idx) => {
+    const row = document.createElement('div');
+    row.className = 'chain-row';
+
+    const indexEl = document.createElement('div');
+    indexEl.className = 'chain-index';
+    indexEl.textContent = idx === 0 ? '' : idx;
+    row.appendChild(indexEl);
+
+    const tiles = document.createElement('div');
+    tiles.className = 'tiles';
+    const prev = idx > 0 ? chainWords[idx - 1] : null;
+    word.toUpperCase().split('').forEach((ch, i) => {
+      const div = document.createElement('div');
+      const changed = prev && prev[i] !== word[i];
+      div.className = 'tile' + (changed ? ' changed' : '');
+      div.textContent = ch;
+      tiles.appendChild(div);
+    });
+    row.appendChild(tiles);
+    chainEl.appendChild(row);
+  });
+  chainEl.scrollTop = chainEl.scrollHeight;
+}
+
+function setMsg(text, type) {
+  msgEl.textContent = text || '';
+  msgEl.className = 'msg' + (type ? ' ' + type : '');
+}
+
+function newPuzzle() {
+  puzzle = pickPuzzle();
+  chainWords = [puzzle.start];
+  renderStaticTiles(startTilesEl, puzzle.start, false);
+  renderStaticTiles(targetTilesEl, puzzle.target, true);
+  renderChain();
+  moveCountEl.textContent = '0';
+  setMsg('', '');
+  winPanel.classList.add('hidden');
+  inputRow.parentElement.classList.remove('hidden');
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('newPuzzleBtn').disabled = false;
+  inputs.forEach(i => i.value = '');
+  inputs[0].focus();
+}
+
+function currentGuess() {
+  return inputs.map(i => i.value.trim().toLowerCase()).join('');
+}
+
+function submitGuess() {
+  const guess = currentGuess();
+  if (guess.length !== 4 || !/^[a-z]{4}$/.test(guess)) {
+    setMsg('Enter 4 letters.', 'error');
+    return;
+  }
+  const prev = chainWords[chainWords.length - 1];
+  const d = diffCount(prev, guess);
+  if (d === 0) {
+    setMsg('That’s the same word — change one letter.', 'error');
+    return;
+  }
+  if (d > 1) {
+    setMsg('Change exactly one letter from "' + prev.toUpperCase() + '".', 'error');
+    return;
+  }
+  if (!WORD_SET.has(guess)) {
+    setMsg('"' + guess.toUpperCase() + '" isn’t in the word list. Try another real word.', 'error');
+    return;
+  }
+  if (chainWords.includes(guess)) {
+    setMsg('You already used that word.', 'error');
+    return;
+  }
+
+  chainWords.push(guess);
+  renderChain();
+  moveCountEl.textContent = String(chainWords.length - 1);
+  inputs.forEach(i => i.value = '');
+  inputs[0].focus();
+
+  if (guess === puzzle.target) {
+    setMsg('', '');
+    win();
+  } else {
+    setMsg('', '');
+  }
+}
+
+function win() {
+  const moves = chainWords.length - 1;
+  const par = puzzle.par;
+  let title, sub;
+  if (moves <= par) {
+    title = 'Perfect! 🏆';
+    sub = 'You solved it in the minimum possible moves.';
+  } else if (moves <= par + 2) {
+    title = 'Nice work! 🎉';
+    sub = 'Solved in ' + moves + ' moves (par was ' + par + ').';
+  } else {
+    title = 'Solved! ✅';
+    sub = 'It took ' + moves + ' moves (par was ' + par + ') — give it another shot.';
+  }
+  winTitle.textContent = title;
+  winSub.textContent = sub;
+  const shareLines = [
+    '🪜 Word Ladder: ' + puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase(),
+    'Solved in ' + moves + ' moves (par ' + par + ')',
+    window.location.href
+  ];
+  shareText.value = shareLines.join('\n');
+  winPanel.classList.remove('hidden');
+  inputRow.parentElement.classList.add('hidden');
+}
+
+inputs.forEach((input, idx) => {
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/[^a-zA-Z]/g, '').slice(-1);
+    if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !input.value && idx > 0) {
+      inputs[idx - 1].focus();
+    }
+    if (e.key === 'Enter') {
+      submitGuess();
+    }
+  });
+  input.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text').trim().toLowerCase();
+    if (/^[a-z]{4}$/.test(text)) {
+      e.preventDefault();
+      text.split('').forEach((ch, i) => { inputs[i].value = ch; });
+      inputs[3].focus();
+    }
+  });
+});
+
+document.getElementById('submitBtn').addEventListener('click', submitGuess);
+document.getElementById('newPuzzleBtn').addEventListener('click', newPuzzle);
+document.getElementById('playAgainBtn').addEventListener('click', newPuzzle);
+document.getElementById('copyBtn').addEventListener('click', () => {
+  shareText.select();
+  navigator.clipboard.writeText(shareText.value).then(() => {
+    document.getElementById('copyBtn').textContent = 'Copied!';
+    setTimeout(() => { document.getElementById('copyBtn').textContent = 'Copy result to share'; }, 1500);
+  }).catch(() => {});
+});
+
+newPuzzle();
+</script>
+</body>
+</html>
