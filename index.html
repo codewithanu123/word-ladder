@@ -223,6 +223,7 @@
 <div class="wrap">
   <h1>🪜 Word Ladder</h1>
   <p class="sub">Turn the start word into the target word — one letter at a time. Every step must be a real word.</p>
+  <p class="sub" id="modeLabel" style="margin-top:-14px;"></p>
 
   <div class="card">
     <div class="goal-row">
@@ -252,7 +253,7 @@
     </div>
     <div class="btn-row">
       <button id="submitBtn" class="primary">Enter</button>
-      <button id="newPuzzleBtn">New Puzzle</button>
+      <button id="newPuzzleBtn">Practice Round</button>
     </div>
   </div>
 
@@ -266,7 +267,7 @@
     </div>
   </div>
 
-  <footer>Word list: common 4-letter English words. New puzzle each play.</footer>
+  <footer>Word list: common 4-letter English words. New daily challenge every day.</footer>
 </div>
 
 <script>
@@ -396,11 +397,12 @@ function bfsDistance(adj, start, target) {
 const ADJ = buildAdjacency(WORDS);
 const COMPONENT = largestComponent(WORDS, ADJ);
 
-function pickPuzzle() {
+function pickPuzzle(rng) {
+  rng = rng || Math.random;
   let best = null;
   for (let attempt = 0; attempt < 300; attempt++) {
-    const a = COMPONENT[Math.floor(Math.random() * COMPONENT.length)];
-    const b = COMPONENT[Math.floor(Math.random() * COMPONENT.length)];
+    const a = COMPONENT[Math.floor(rng() * COMPONENT.length)];
+    const b = COMPONENT[Math.floor(rng() * COMPONENT.length)];
     if (a === b) continue;
     const d = bfsDistance(ADJ, a, b);
     if (d >= 3 && d <= 6) return { start: a, target: b, par: d };
@@ -409,8 +411,30 @@ function pickPuzzle() {
   return best;
 }
 
+// Deterministic PRNG (mulberry32) seeded from a string, so everyone who
+// opens the page on the same UTC date gets the exact same daily puzzle.
+function seededRng(seedStr) {
+  let h = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function () {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
+}
+
+function todayKey() {
+  const d = new Date();
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}
+
 let puzzle = null;
 let chainWords = [];
+let isDailyMode = true;
 
 const startTilesEl = document.getElementById('startTiles');
 const targetTilesEl = document.getElementById('targetTiles');
@@ -423,6 +447,7 @@ const winTitle = document.getElementById('winTitle');
 const winSub = document.getElementById('winSub');
 const shareText = document.getElementById('shareText');
 const inputRow = document.getElementById('inputRow');
+const modeLabelEl = document.getElementById('modeLabel');
 
 function renderStaticTiles(container, word, goal) {
   container.innerHTML = '';
@@ -466,8 +491,12 @@ function setMsg(text, type) {
   msgEl.className = 'msg' + (type ? ' ' + type : '');
 }
 
-function newPuzzle() {
-  puzzle = pickPuzzle();
+function newPuzzle(daily) {
+  isDailyMode = !!daily;
+  puzzle = isDailyMode ? pickPuzzle(seededRng('word-ladder-' + todayKey())) : pickPuzzle();
+  modeLabelEl.textContent = isDailyMode
+    ? "Today's challenge — same puzzle for everyone. Share your score!"
+    : 'Practice round — a random puzzle just for you.';
   chainWords = [puzzle.start];
   renderStaticTiles(startTilesEl, puzzle.start, false);
   renderStaticTiles(targetTilesEl, puzzle.target, true);
@@ -541,11 +570,17 @@ function win() {
   }
   winTitle.textContent = title;
   winSub.textContent = sub;
-  const shareLines = [
-    '🧩 Word Ladder Challenge',
+  const shareLines = isDailyMode ? [
+    "🧩 Today's Word Ladder Challenge",
     puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (par ' + par + ')',
     '',
-    'Think you can beat my score? Give it a try 👇',
+    'Everyone gets the same puzzle today — think you can beat my score? 👇',
+    window.location.href
+  ] : [
+    '🧩 Word Ladder (practice round)',
+    puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (par ' + par + ')',
+    '',
+    'Try today\'s real challenge here 👇',
     window.location.href
   ];
   shareText.value = shareLines.join('\n');
@@ -577,8 +612,8 @@ inputs.forEach((input, idx) => {
 });
 
 document.getElementById('submitBtn').addEventListener('click', submitGuess);
-document.getElementById('newPuzzleBtn').addEventListener('click', newPuzzle);
-document.getElementById('playAgainBtn').addEventListener('click', newPuzzle);
+document.getElementById('newPuzzleBtn').addEventListener('click', () => newPuzzle(false));
+document.getElementById('playAgainBtn').addEventListener('click', () => newPuzzle(false));
 document.getElementById('copyBtn').addEventListener('click', () => {
   shareText.select();
   navigator.clipboard.writeText(shareText.value).then(() => {
@@ -587,7 +622,7 @@ document.getElementById('copyBtn').addEventListener('click', () => {
   }).catch(() => {});
 });
 
-newPuzzle();
+newPuzzle(true);
 </script>
 </body>
 </html>
