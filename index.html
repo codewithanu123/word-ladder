@@ -201,12 +201,14 @@
     width:100%;
     min-height:70px;
     resize:none;
+    overflow:hidden;
     border-radius:8px;
     border:1px solid var(--border);
     background:var(--tile-bg);
     color:var(--text);
     font-family:inherit;
     font-size:0.85rem;
+    line-height:1.5;
     padding:10px;
     margin-bottom:10px;
   }
@@ -584,6 +586,8 @@ function win() {
     window.location.href
   ];
   shareText.value = shareLines.join('\n');
+  shareText.style.height = 'auto';
+  shareText.style.height = shareText.scrollHeight + 'px';
   winPanel.classList.remove('hidden');
   inputRow.parentElement.classList.add('hidden');
 }
