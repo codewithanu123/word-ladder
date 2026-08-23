@@ -13,8 +13,6 @@
     --border:#33383f;
     --tile-bg:#262b31;
     --tile-border:#3a4048;
-    --tile-changed-bg:#3b9eff;
-    --tile-changed-text:#0b1015;
     --tile-goal-bg:#1f2328;
     --tile-goal-border:#3b9eff;
     --accent:#3b9eff;
@@ -94,10 +92,10 @@
     border:2px solid var(--tile-goal-border);
     color:var(--accent);
   }
-  .tile.changed{
-    background:var(--tile-changed-bg);
-    color:var(--tile-changed-text);
-    border-color:var(--tile-changed-bg);
+  .tile.correct{
+    background:var(--success);
+    color:#0b1015;
+    border-color:var(--success);
   }
   .chain{
     display:flex;
@@ -474,11 +472,10 @@ function renderChain() {
 
     const tiles = document.createElement('div');
     tiles.className = 'tiles';
-    const prev = idx > 0 ? chainWords[idx - 1] : null;
     word.toUpperCase().split('').forEach((ch, i) => {
       const div = document.createElement('div');
-      const changed = prev && prev[i] !== word[i];
-      div.className = 'tile' + (changed ? ' changed' : '');
+      const correct = puzzle.target[i] === word[i];
+      div.className = 'tile' + (correct ? ' correct' : '');
       div.textContent = ch;
       tiles.appendChild(div);
     });
