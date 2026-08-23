@@ -563,7 +563,8 @@ function win() {
   const shareLines = [
     '🪜 Word Ladder: ' + puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase(),
     'Solved in ' + moves + ' moves (par ' + par + ')',
-    window.location.href
+    '',
+    '👉 Play here: ' + window.location.href
   ];
   shareText.value = shareLines.join('\n');
   winPanel.classList.remove('hidden');
