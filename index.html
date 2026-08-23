@@ -561,10 +561,11 @@ function win() {
   winTitle.textContent = title;
   winSub.textContent = sub;
   const shareLines = [
-    '🪜 Word Ladder: ' + puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase(),
-    'Solved in ' + moves + ' moves (par ' + par + ')',
+    '🧩 Word Ladder Challenge',
+    puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (par ' + par + ')',
     '',
-    '👉 Play here: ' + window.location.href
+    'Think you can beat my score? Give it a try 👇',
+    window.location.href
   ];
   shareText.value = shareLines.join('\n');
   winPanel.classList.remove('hidden');
