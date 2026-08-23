@@ -563,22 +563,22 @@ function win() {
     sub = 'You solved it in the minimum possible moves.';
   } else if (moves <= par + 2) {
     title = 'Nice work! 🎉';
-    sub = 'Solved in ' + moves + ' moves (par was ' + par + ').';
+    sub = 'Solved in ' + moves + ' moves (best possible was ' + par + ').';
   } else {
     title = 'Solved! ✅';
-    sub = 'It took ' + moves + ' moves (par was ' + par + ') — give it another shot.';
+    sub = 'It took ' + moves + ' moves (best possible was ' + par + ') — give it another shot.';
   }
   winTitle.textContent = title;
   winSub.textContent = sub;
   const shareLines = isDailyMode ? [
     "🧩 Today's Word Ladder Challenge",
-    puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (par ' + par + ')',
+    puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (best possible: ' + par + ')',
     '',
     'Everyone gets the same puzzle today — think you can beat my score? 👇',
     window.location.href
   ] : [
     '🧩 Word Ladder (practice round)',
-    puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (par ' + par + ')',
+    puzzle.start.toUpperCase() + ' → ' + puzzle.target.toUpperCase() + ' in ' + moves + ' moves (best possible: ' + par + ')',
     '',
     'Try today\'s real challenge here 👇',
     window.location.href
