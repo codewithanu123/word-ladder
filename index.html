@@ -162,6 +162,7 @@
     border-color:var(--accent);
   }
   button:active{ transform:scale(0.98); }
+  button:disabled{ opacity:0.45; cursor:not-allowed; }
   .msg{
     min-height:20px;
     text-align:center;
@@ -274,6 +275,7 @@
     </div>
     <div class="btn-row">
       <button id="submitBtn" class="primary">Enter</button>
+      <button id="dailyBtn">Today's Challenge</button>
       <button id="newPuzzleBtn">New Puzzle</button>
     </div>
   </div>
@@ -825,7 +827,8 @@ function newPuzzle(daily) {
   winPanel.classList.add('hidden');
   inputRow.parentElement.classList.remove('hidden');
   document.getElementById('submitBtn').disabled = false;
-  document.getElementById('newPuzzleBtn').disabled = false;
+  document.getElementById('dailyBtn').disabled = isDailyMode;
+  document.getElementById('newPuzzleBtn').disabled = !isDailyMode;
   inputs.forEach(i => i.value = '');
   inputs[0].focus();
 }
@@ -934,6 +937,7 @@ inputs.forEach((input, idx) => {
 });
 
 document.getElementById('submitBtn').addEventListener('click', submitGuess);
+document.getElementById('dailyBtn').addEventListener('click', () => newPuzzle(true));
 document.getElementById('newPuzzleBtn').addEventListener('click', () => newPuzzle(false));
 document.getElementById('playAgainBtn').addEventListener('click', () => newPuzzle(false));
 function copyShareText() {
