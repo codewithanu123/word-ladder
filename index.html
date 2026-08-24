@@ -195,6 +195,27 @@
     margin:0 0 14px;
     font-size:0.9rem;
   }
+  .share-wrap{
+    position:relative;
+  }
+  .copy-icon-btn{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:28px;
+    height:28px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:0.9rem;
+    line-height:1;
+    border-radius:6px;
+    border:1px solid var(--tile-border);
+    background:var(--card);
+    color:var(--text);
+    cursor:pointer;
+  }
   textarea.share{
     width:100%;
     min-height:70px;
@@ -207,7 +228,7 @@
     font-family:inherit;
     font-size:0.85rem;
     line-height:1.5;
-    padding:10px;
+    padding:10px 40px 10px 10px;
     margin-bottom:10px;
   }
   .hidden{ display:none; }
@@ -260,7 +281,10 @@
   <div class="card win-panel hidden" id="winPanel">
     <h2 id="winTitle">Solved!</h2>
     <p id="winSub"></p>
-    <textarea class="share" id="shareText" readonly></textarea>
+    <div class="share-wrap">
+      <textarea class="share" id="shareText" readonly></textarea>
+      <button class="copy-icon-btn" id="copyIconBtn" title="Copy to clipboard" aria-label="Copy to clipboard">📋</button>
+    </div>
     <a id="shareLink" href="#" target="_blank" rel="noopener" style="display:block;font-size:0.8rem;color:var(--accent);text-decoration:none;margin:-4px 0 12px;">Play again</a>
     <div class="btn-row">
       <button class="primary" id="copyBtn">Copy result to share</button>
@@ -912,11 +936,25 @@ inputs.forEach((input, idx) => {
 document.getElementById('submitBtn').addEventListener('click', submitGuess);
 document.getElementById('newPuzzleBtn').addEventListener('click', () => newPuzzle(false));
 document.getElementById('playAgainBtn').addEventListener('click', () => newPuzzle(false));
-document.getElementById('copyBtn').addEventListener('click', () => {
+function copyShareText() {
   shareText.select();
-  navigator.clipboard.writeText(shareText.value).then(() => {
-    document.getElementById('copyBtn').textContent = 'Copied!';
-    setTimeout(() => { document.getElementById('copyBtn').textContent = 'Copy result to share'; }, 1500);
+  return navigator.clipboard.writeText(shareText.value);
+}
+
+const copyBtn = document.getElementById('copyBtn');
+const copyIconBtn = document.getElementById('copyIconBtn');
+
+copyBtn.addEventListener('click', () => {
+  copyShareText().then(() => {
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => { copyBtn.textContent = 'Copy result to share'; }, 1500);
+  }).catch(() => {});
+});
+
+copyIconBtn.addEventListener('click', () => {
+  copyShareText().then(() => {
+    copyIconBtn.textContent = '✅';
+    setTimeout(() => { copyIconBtn.textContent = '📋'; }, 1500);
   }).catch(() => {});
 });
 
