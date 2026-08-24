@@ -275,6 +275,7 @@
     </div>
     <div class="btn-row">
       <button id="submitBtn" class="primary">Enter</button>
+      <button id="resetBtn" class="hidden">Reset</button>
       <button id="dailyBtn">Today's Challenge</button>
       <button id="newPuzzleBtn">New Puzzle</button>
     </div>
@@ -812,25 +813,30 @@ function setMsg(text, type) {
   msgEl.className = 'msg' + (type ? ' ' + type : '');
 }
 
-function newPuzzle(daily) {
-  isDailyMode = !!daily;
-  puzzle = isDailyMode ? pickPuzzle(seededRng('word-ladder-' + todayKey())) : pickPuzzle();
-  modeLabelEl.innerHTML = isDailyMode
-    ? "<strong>Today's Challenge</strong> — same puzzle for everyone. Share your score!"
-    : '<strong>Practice Round</strong> — a random puzzle just for you.';
+function resetChain() {
   chainWords = [puzzle.start];
   renderStaticTiles(startTilesEl, puzzle.start, false);
   renderStaticTiles(targetTilesEl, puzzle.target, true);
   renderChain();
   moveCountEl.textContent = '0';
   setMsg('', '');
+  inputs.forEach(i => i.value = '');
+  inputs[0].focus();
+}
+
+function newPuzzle(daily) {
+  isDailyMode = !!daily;
+  puzzle = isDailyMode ? pickPuzzle(seededRng('word-ladder-' + todayKey())) : pickPuzzle();
+  modeLabelEl.innerHTML = isDailyMode
+    ? "<strong>Today's Challenge</strong> — same puzzle for everyone. Share your score!"
+    : '<strong>Practice Round</strong> — a random puzzle just for you.';
+  resetChain();
   winPanel.classList.add('hidden');
   inputRow.parentElement.classList.remove('hidden');
   document.getElementById('submitBtn').disabled = false;
   document.getElementById('dailyBtn').disabled = isDailyMode;
   document.getElementById('newPuzzleBtn').disabled = false;
-  inputs.forEach(i => i.value = '');
-  inputs[0].focus();
+  document.getElementById('resetBtn').classList.toggle('hidden', isDailyMode);
 }
 
 function currentGuess() {
@@ -937,6 +943,7 @@ inputs.forEach((input, idx) => {
 });
 
 document.getElementById('submitBtn').addEventListener('click', submitGuess);
+document.getElementById('resetBtn').addEventListener('click', resetChain);
 document.getElementById('dailyBtn').addEventListener('click', () => newPuzzle(true));
 document.getElementById('newPuzzleBtn').addEventListener('click', () => newPuzzle(false));
 document.getElementById('playAgainBtn').addEventListener('click', () => newPuzzle(false));
