@@ -259,6 +259,10 @@
         <div class="tiles" id="targetTiles"></div>
       </div>
     </div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="dailyBtn">Today's Challenge</button>
+      <button id="newPuzzleBtn">New Puzzle</button>
+    </div>
   </div>
 
   <div class="card">
@@ -276,8 +280,6 @@
     <div class="btn-row">
       <button id="submitBtn" class="primary">Enter</button>
       <button id="resetBtn" class="hidden">Reset</button>
-      <button id="dailyBtn">Today's Challenge</button>
-      <button id="newPuzzleBtn">New Puzzle</button>
     </div>
   </div>
 
@@ -288,10 +290,9 @@
       <textarea class="share" id="shareText" readonly></textarea>
       <button class="copy-icon-btn" id="copyIconBtn" title="Copy to clipboard" aria-label="Copy to clipboard">📋</button>
     </div>
-    <a id="shareLink" href="#" target="_blank" rel="noopener" style="display:block;font-size:0.8rem;color:var(--accent);text-decoration:none;margin:-4px 0 12px;">Play again</a>
     <div class="btn-row">
       <button class="primary" id="copyBtn">Copy result to share</button>
-      <button id="playAgainBtn">PLAY</button>
+      <button id="playAgainBtn" class="hidden">Play again</button>
     </div>
   </div>
 
@@ -669,17 +670,27 @@ function diffCount(a, b) {
 }
 
 function buildAdjacency(words) {
+  const buckets = new Map();
+  for (const w of words) {
+    for (let i = 0; i < 4; i++) {
+      const pattern = w.slice(0, i) + '_' + w.slice(i + 1);
+      if (!buckets.has(pattern)) buckets.set(pattern, []);
+      buckets.get(pattern).push(w);
+    }
+  }
   const adj = new Map();
-  words.forEach(w => adj.set(w, []));
-  for (let i = 0; i < words.length; i++) {
-    for (let j = i + 1; j < words.length; j++) {
-      if (diffCount(words[i], words[j]) === 1) {
-        adj.get(words[i]).push(words[j]);
-        adj.get(words[j]).push(words[i]);
+  words.forEach(w => adj.set(w, new Set()));
+  for (const group of buckets.values()) {
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        adj.get(group[i]).add(group[j]);
+        adj.get(group[j]).add(group[i]);
       }
     }
   }
-  return adj;
+  const result = new Map();
+  for (const [w, set] of adj) result.set(w, [...set]);
+  return result;
 }
 
 function largestComponent(words, adj) {
@@ -718,6 +729,7 @@ function bfsDistance(adj, start, target) {
 
 const ADJ = buildAdjacency(WORDS);
 const COMPONENT = largestComponent(WORDS, ADJ);
+const FULL_ADJ = buildAdjacency([...WORD_SET]);
 
 function pickPuzzle(rng) {
   rng = rng || Math.random;
@@ -726,7 +738,7 @@ function pickPuzzle(rng) {
     const a = COMPONENT[Math.floor(rng() * COMPONENT.length)];
     const b = COMPONENT[Math.floor(rng() * COMPONENT.length)];
     if (a === b) continue;
-    const d = bfsDistance(ADJ, a, b);
+    const d = bfsDistance(FULL_ADJ, a, b);
     if (d >= 3 && d <= 6) return { start: a, target: b, par: d };
     if (d > 0 && (!best || Math.abs(d - 4) < Math.abs(best.par - 4))) best = { start: a, target: b, par: d };
   }
@@ -768,7 +780,6 @@ const winPanel = document.getElementById('winPanel');
 const winTitle = document.getElementById('winTitle');
 const winSub = document.getElementById('winSub');
 const shareText = document.getElementById('shareText');
-const shareLink = document.getElementById('shareLink');
 const inputRow = document.getElementById('inputRow');
 const modeLabelEl = document.getElementById('modeLabel');
 
@@ -914,7 +925,7 @@ function win() {
   shareText.value = shareLines.join('\n');
   shareText.style.height = 'auto';
   shareText.style.height = shareText.scrollHeight + 'px';
-  shareLink.href = window.location.href;
+  document.getElementById('playAgainBtn').classList.toggle('hidden', isDailyMode);
   winPanel.classList.remove('hidden');
   inputRow.parentElement.classList.add('hidden');
 }
@@ -969,7 +980,7 @@ copyIconBtn.addEventListener('click', () => {
   }).catch(() => {});
 });
 
-newPuzzle(true);
+newPuzzle(false);
 </script>
 </body>
 </html>
