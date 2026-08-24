@@ -253,7 +253,7 @@
     </div>
     <div class="btn-row">
       <button id="submitBtn" class="primary">Enter</button>
-      <button id="newPuzzleBtn">Practice Round</button>
+      <button id="newPuzzleBtn">New Puzzle</button>
     </div>
   </div>
 
@@ -789,9 +789,9 @@ function setMsg(text, type) {
 function newPuzzle(daily) {
   isDailyMode = !!daily;
   puzzle = isDailyMode ? pickPuzzle(seededRng('word-ladder-' + todayKey())) : pickPuzzle();
-  modeLabelEl.textContent = isDailyMode
-    ? "Today's challenge — same puzzle for everyone. Share your score!"
-    : 'Practice round — a random puzzle just for you.';
+  modeLabelEl.innerHTML = isDailyMode
+    ? "<strong>Today's Challenge</strong> — same puzzle for everyone. Share your score!"
+    : '<strong>Practice Round</strong> — a random puzzle just for you.';
   chainWords = [puzzle.start];
   renderStaticTiles(startTilesEl, puzzle.start, false);
   renderStaticTiles(targetTilesEl, puzzle.target, true);
