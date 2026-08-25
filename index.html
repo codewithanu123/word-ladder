@@ -835,6 +835,12 @@ function resetChain() {
   inputs[0].focus();
 }
 
+function replaySamePuzzle() {
+  resetChain();
+  winPanel.classList.add('hidden');
+  inputRow.parentElement.classList.remove('hidden');
+}
+
 function newPuzzle(daily) {
   isDailyMode = !!daily;
   puzzle = isDailyMode ? pickPuzzle(seededRng('word-ladder-' + todayKey())) : pickPuzzle();
@@ -957,7 +963,7 @@ document.getElementById('submitBtn').addEventListener('click', submitGuess);
 document.getElementById('resetBtn').addEventListener('click', resetChain);
 document.getElementById('dailyBtn').addEventListener('click', () => newPuzzle(true));
 document.getElementById('newPuzzleBtn').addEventListener('click', () => newPuzzle(false));
-document.getElementById('playAgainBtn').addEventListener('click', () => newPuzzle(false));
+document.getElementById('playAgainBtn').addEventListener('click', replaySamePuzzle);
 function copyShareText() {
   shareText.select();
   return navigator.clipboard.writeText(shareText.value);
