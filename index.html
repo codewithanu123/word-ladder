@@ -138,6 +138,16 @@
   .letter-input:focus{
     outline:2px solid var(--accent);
   }
+  .clear-row-btn{
+    width:32px;
+    height:44px;
+    padding:0;
+    margin-left:4px;
+    font-size:1rem;
+    line-height:1;
+    color:var(--danger);
+    border-color:var(--danger);
+  }
   .btn-row{
     display:flex;
     gap:8px;
@@ -272,6 +282,7 @@
       <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
       <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
       <input class="letter-input" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false">
+      <button id="clearRowBtn" class="clear-row-btn hidden" type="button" title="Clear row" aria-label="Clear row">✕</button>
     </div>
     <div class="msg" id="msg"></div>
     <div class="stats">
@@ -340,6 +351,22 @@ const winSub = document.getElementById('winSub');
 const shareText = document.getElementById('shareText');
 const inputRow = document.getElementById('inputRow');
 const modeLabelEl = document.getElementById('modeLabel');
+const clearRowBtn = document.getElementById('clearRowBtn');
+
+function showClearRowBtn() {
+  clearRowBtn.classList.remove('hidden');
+}
+
+function hideClearRowBtn() {
+  clearRowBtn.classList.add('hidden');
+}
+
+function clearRow() {
+  inputs.forEach(i => i.value = '');
+  inputs[0].focus();
+  hideClearRowBtn();
+  setMsg('', '');
+}
 
 function renderStaticTiles(container, word, goal) {
   container.innerHTML = '';
@@ -390,6 +417,7 @@ function resetChain() {
   moveCountEl.textContent = '0';
   setMsg('', '');
   inputs.forEach(i => i.value = '');
+  hideClearRowBtn();
   inputs[0].focus();
 }
 
@@ -446,14 +474,17 @@ async function submitGuess() {
   const d = diffCount(prev, guess);
   if (d === 0) {
     setMsg('That’s the same word — change one letter.', 'error');
+    showClearRowBtn();
     return;
   }
   if (d > 1) {
     setMsg('Change exactly one letter from "' + prev.toUpperCase() + '".', 'error');
+    showClearRowBtn();
     return;
   }
   if (chainWords.includes(guess)) {
     setMsg('You already used that word.', 'error');
+    showClearRowBtn();
     return;
   }
 
@@ -470,6 +501,7 @@ async function submitGuess() {
 
   if (!result.valid) {
     setMsg(result.reason || 'Not a valid move.', 'error');
+    showClearRowBtn();
     return;
   }
 
@@ -477,6 +509,7 @@ async function submitGuess() {
   renderChain();
   moveCountEl.textContent = String(chainWords.length - 1);
   inputs.forEach(i => i.value = '');
+  hideClearRowBtn();
   inputs[0].focus();
 
   if (guess === puzzle.target) {
@@ -528,6 +561,8 @@ inputs.forEach((input, idx) => {
   input.addEventListener('input', () => {
     input.value = input.value.replace(/[^a-zA-Z]/g, '').slice(-1);
     if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+    hideClearRowBtn();
+    setMsg('', '');
   });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Backspace' && !input.value && idx > 0) {
@@ -549,6 +584,7 @@ inputs.forEach((input, idx) => {
 
 document.getElementById('submitBtn').addEventListener('click', submitGuess);
 document.getElementById('resetBtn').addEventListener('click', resetChain);
+clearRowBtn.addEventListener('click', clearRow);
 document.getElementById('dailyBtn').addEventListener('click', () => newPuzzle(true));
 document.getElementById('newPuzzleBtn').addEventListener('click', () => newPuzzle(false));
 document.getElementById('playAgainBtn').addEventListener('click', replaySamePuzzle);
